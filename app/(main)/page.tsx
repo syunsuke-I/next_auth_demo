@@ -6,7 +6,7 @@ export default function Page() {
     <main className="flex flex-col items-center space-y-4">
       <p>hello world</p>
       <Button asChild>
-        <Link href="/api/auth/signin">サインイン</Link>
+        <Link href="/login">ログイン</Link>
       </Button>
     </main>
   );

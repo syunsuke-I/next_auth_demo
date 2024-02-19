@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";
+import { LogoutButton } from "../auth/LogoutButton";
 
 const links = [
   { name: "Home", href: "/" },
@@ -34,6 +35,7 @@ export const Sidenav = () => {
           </Link>
         );
       })}
+      <LogoutButton />
     </div>
   );
 };
