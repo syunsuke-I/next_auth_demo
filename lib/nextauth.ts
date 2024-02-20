@@ -70,7 +70,9 @@ export const authOptions: NextAuthOptions = {
       return baseUrl;
     },    
   },
-  pages: {},
+  pages: {
+    error: "/login",
+  },
 };
 
 export const getAuthSession = async () => {
