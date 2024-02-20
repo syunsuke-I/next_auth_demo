@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { signIn } from "next-auth/react";
 import React, { useState } from "react";
-import { FaGithub } from "react-icons/fa";
+import { FaGithub, FaGoogle } from "react-icons/fa";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "../ui/separator";
 import { Label } from "../ui/label";
@@ -26,10 +26,10 @@ export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // GitHub でログイン
-  const handleLoginGithub = async () => {
+  const handleSocialLogin = async (socialName: string) => {
     setIsLoading(true);
     try {
-      const result = await signIn("github", { callbackUrl: "/" });
+      const result = await signIn(socialName, { callbackUrl: "/" });
       if (result?.error) {
         toast({
           variant: "destructive",
@@ -97,16 +97,25 @@ export const LoginForm = () => {
         <CardDescription>ログインして学習を開始しましょう！</CardDescription>
       </CardHeader>
       <CardContent className="w-full space-y-8">
-        <div>
+        <div className="grid grid-cols-2 gap-6">
           <Button
             disabled={isLoading}
             className="space-x-1"
             variant={"outline"}
-            onClick={() => handleLoginGithub()}
+            onClick={() => handleSocialLogin("github")}
           >
             <FaGithub />
             <div>GitHub</div>
           </Button>
+          <Button
+          disabled={isLoading}
+          className="space-x-1"
+          variant={"outline"}
+          onClick={() => handleSocialLogin("google")}
+          >
+          <FaGoogle />
+          <div>Google</div>
+        </Button>        
         </div>
         <Separator />
         <div className="space-y-4">

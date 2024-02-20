@@ -8,6 +8,7 @@ const errorMessages = {
   OAuthAccountNotLinked:
     "このメールアドレスは別のログイン方法で既に登録されています。以前に使用したログイン方法をお試しください。",
   InvalidCredentials: "メールアドレス・パスワードが正しくありません",
+  loginRequired: "ログインが必要です",
 };
 
 export const ErrorToaster = () => {

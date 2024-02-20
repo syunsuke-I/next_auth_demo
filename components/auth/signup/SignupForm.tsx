@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { signIn } from "next-auth/react";
-import { FaGithub } from "react-icons/fa";
+import { FaGithub, FaGoogle } from "react-icons/fa";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { EmailSignupForm } from "./EmailSignupForm";
@@ -18,10 +18,10 @@ import { EmailSignupForm } from "./EmailSignupForm";
 export const SignupForm = () => {
   const { toast } = useToast();
 
-  // GitHub でログイン
-  const handleLoginGithub = async () => {
+  // ソーシャルログイン
+  const handleSocialLogin = async (socialName: string) => {
     try {
-      const result = await signIn("github", { callbackUrl: "/" });
+      const result = await signIn(socialName, { callbackUrl: "/" });
       if (result?.error) {
         toast({
           variant: "destructive",
@@ -51,14 +51,22 @@ export const SignupForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="w-full space-y-8">
-        <div>
+        <div className="grid grid-cols-2 gap-6">
           <Button
             className="space-x-1"
             variant={"outline"}
-            onClick={() => handleLoginGithub()}
+            onClick={() => handleSocialLogin("github")}
           >
             <FaGithub />
             <div>GitHubで登録</div>
+          </Button>
+          <Button
+            className="space-x-1"
+            variant={"outline"}
+            onClick={() => handleSocialLogin("google")}
+          >
+            <FaGoogle />
+            <div>Googleで登録</div>
           </Button>
         </div>
         <Separator />
