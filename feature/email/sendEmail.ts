@@ -62,3 +62,38 @@ const sendEmailWithMailHog = async ({
   const info = await transporter.sendMail(mailOptions);
   return info;
 };
+
+export const sendEmailAlertPasswordReset = ({
+  email,
+}: {
+  email: string;
+}) => {
+  const now = new Date();
+  const subject = `パスワードをリセットしました`;
+  const body = removeIndent(
+    `あなたのアカウントのパスワードが正常にリセットされました。この変更は ${now.toLocaleString()} に行われました。
+    もしこのパスワードリセットを行っていない場合、またはこの変更について心当たりがない場合は、すぐにアカウントのセキュリティを確認し、サポートチームに連絡してください。
+    `
+  );
+
+  return sendEmail({ to: email, subject: subject, text: body });
+};
+
+export const sendEmailWithPasswordResetToken = ({
+  email,
+  token,
+}: {
+  email: string;
+  token: string;
+}) => {
+  const subject = `パスワードリセットのリクエストを受け付けました`;
+  const body =
+    removeIndent(`あなたのアカウントのパスワードリセットのリクエストを受け取りました。リセットを行うために、以下のリセットトークンを指定された場所に入力してください
+  \n
+  リセットトークン: ${token}
+  \n
+  このトークンは次の24時間でのみ有効です。
+  このリクエストの覚えがない場合は、このメッセージを無視してください。`);
+
+  return sendEmail({ to: email, subject: subject, text: body });
+};

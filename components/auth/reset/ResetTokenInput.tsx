@@ -14,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { verifyToken } from "./actions";
 import { LiaSpinnerSolid } from "react-icons/lia";
 import {
   Card,
@@ -24,14 +23,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { verifyResetToken } from "./actions";
 
 const schema = z.object({
-  token: z.string().length(8, "トークンは8文字で入力してください"),
+  token: z.string().min(1, "入力必須です"),
 });
 
 type InputType = z.infer<typeof schema>;
 
-export const VerificationTokenInput = () => {
+export const ResetTokenInput = () => {
   // ローディング状態とエラーメッセージのステート
   const [isLoading, setIsLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
@@ -51,12 +51,12 @@ export const VerificationTokenInput = () => {
     setErrMsg("");
 
     // 入力されたトークンは sessionStorage に保存し、
-    // ユーザーの作成画面で利用します
-    sessionStorage.setItem("verify_token", data.token);
+    // パスワードの入力画面で利用します
+    sessionStorage.setItem("reset_token", data.token);
 
     try {
       // 入力されたトークンの検証をリクエストします
-      await verifyToken({ token: data.token });
+      await verifyResetToken({ token: data.token });
       router.push("/auth/reset/reset_password");
     } catch (error) {
       if (error instanceof Error) {
@@ -72,7 +72,7 @@ export const VerificationTokenInput = () => {
   return (
     <Card className="w-[540px] flex flex-col items-center justify-center p-8 px-12">
       <CardHeader>
-        <CardTitle className="mx-auto">Email Verification</CardTitle>
+        <CardTitle className="mx-auto">Password Reset</CardTitle>
         <CardDescription>
           ご登録のメールアドレスに送信された
           <br />
@@ -87,7 +87,7 @@ export const VerificationTokenInput = () => {
               name="token"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>検証用トークン</FormLabel>
+                  <FormLabel>リセットトークン</FormLabel>
                   <FormControl>
                     <Input placeholder="********" {...field} />
                   </FormControl>

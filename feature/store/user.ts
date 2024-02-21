@@ -17,3 +17,24 @@ export const createUser = ({
 }) => {
   return prisma.user.create({ data: { name, email, password, emailVerified } });
 };
+
+export const updateUser = ({
+  userId,
+  name,
+  password,
+  image,
+}: {
+  userId: string;
+  name?: string;
+  password?: string;
+  image?: string;
+}) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      name: name,
+      password: password,
+      image: image,
+    },
+  });
+};

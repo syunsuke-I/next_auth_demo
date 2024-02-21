@@ -5,13 +5,15 @@ import { createUser, getUserByEmail } from "@/feature/store/user";
 import {
   createVerificationToken,
   deleteVerificationTokenByIdentifier,
+  getPasswordResetTokenByToken,
   getVerificationTokenByToken,
 } from "@/feature/store/verificationToken";
 import { generateToken } from "@/feature/utils/util";
-import { User, VerificationToken } from "@prisma/client";
+import { PasswordResetToken, User, VerificationToken } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 export const sendVerificationToken = async ({ email }: { email: string }) => {
+  console.log(`email in sendVerificationToken = ${email}`);
   // メールアドレスをもとに既存のユーザーが存在するか確認します。
   let user: User | null;
   try {
@@ -42,6 +44,7 @@ export const sendVerificationToken = async ({ email }: { email: string }) => {
       email: email,
       token: token,
     });
+    console.log(`verificationToken = ${verificationToken}`);
   } catch (error) {
     console.error(error);
     throw new Error(

@@ -14,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { fetchClientVerificationToken, submitNewUserRequest } from "./actions";
 import { LiaSpinnerSolid } from "react-icons/lia";
 import {
   Card,
@@ -24,13 +23,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { VerificationToken } from "@prisma/client";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { fetchEmailByPasswordResetToken, submitNewPassword } from "./actions";
 
 const schema = z
   .object({
-    name: z.string().min(1, "このフィールドは必須です。"),
     password: z.string().min(8, "パスワードは最低8文字必要です。"),
     confirmPassword: z.string(),
   })
@@ -41,30 +39,35 @@ const schema = z
 
 type InputType = z.infer<typeof schema>;
 
-export const CreateUserForm = () => {
+export const PasswordResetForm = () => {
   // ローディング状態とエラーメッセージのステート
   const [isLoading, setIsLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
-  const [verificationToken, setVerificationToken] =
-    useState<VerificationToken | null>(null);
+  const [email, setEmail] = useState("");
+  const [token, setToken] = useState("");
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
-    // tokenからメールアドレスを取得し、verificationTokenにセットします
+    // sessionStorageのreset_tokenを利用してメールアドレスを取得し、tokenにセットします
     const fetchToken = async () => {
-      // トークン検証画面で sessionStorage に保存したトークンを取得します
-      const verifyToken = sessionStorage.getItem("verify_token");
-      if (!verifyToken) {
+      // リセットトークン入力画面で sessionStorage に保存したトークンを取得します
+      const resetToken = sessionStorage.getItem("reset_token");
+      if (!resetToken) {
         toast({ variant: "destructive", title: "トークンが取得できません" });
         return;
       }
+      // resetTokenをtokenにセット
+      setToken(resetToken);
       try {
-        // トークンからVerificationTokenを取得します
-        const token = await fetchClientVerificationToken({
-          token: verifyToken,
+        // resetTokenからemailを取得します
+        const email = await fetchEmailByPasswordResetToken({
+          token: resetToken,
         });
-        setVerificationToken(token);
+        if (!email) {
+          throw new Error("不正なトークンです。");
+        }
+        setEmail(email);
       } catch (error) {
         if (error instanceof Error) {
           toast({ variant: "destructive", title: error.message });
@@ -83,7 +86,6 @@ export const CreateUserForm = () => {
   const form = useForm<InputType>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: "",
       password: "",
       confirmPassword: "",
     },
@@ -93,19 +95,12 @@ export const CreateUserForm = () => {
   const onSubmit: SubmitHandler<InputType> = async (data) => {
     setIsLoading(true);
     setErrMsg("");
-
     try {
-      if (!verificationToken) {
-        setErrMsg("エラーが発生しました");
-        return;
-      }
-      // ユーザーの新規作成をリクエストします
-      await submitNewUserRequest({
-        token: verificationToken.token,
-        name: data.name,
+      await submitNewPassword({
+        token: token,
         password: data.password,
       });
-      toast({ variant: "default", title: "ユーザーを作成しました" });
+      toast({ variant: "default", title: "パスワードをリセットしました" });
       router.push("/login");
     } catch (error) {
       if (error instanceof Error) {
@@ -121,38 +116,24 @@ export const CreateUserForm = () => {
   return (
     <Card className="w-[540px] flex flex-col items-center justify-center p-8 px-12">
       <CardHeader>
-        <CardTitle className="mx-auto">Create New Account</CardTitle>
+        <CardTitle className="mx-auto">Password Reset Form</CardTitle>
         <CardDescription>
-          新しいアカウントを作成しましょう。以下のフォームに必要な情報を入力して、サービスを始める準備を進めてください。
+          新しいパスワードを以下に入力してください。
         </CardDescription>
       </CardHeader>
       <CardContent className="w-full space-y-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-	      {/* メールアドレスは verificationToken から取得し、変更できないようにしています */}
               <Label>メールアドレス</Label>
-              <Input disabled defaultValue={verificationToken?.identifier} />
+              <Input disabled defaultValue={email} />
             </div>
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>名前</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>パスワード</FormLabel>
+                  <FormLabel>新しいパスワード</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="********" {...field} />
                   </FormControl>

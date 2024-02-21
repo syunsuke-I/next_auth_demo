@@ -25,6 +25,13 @@ export const getVerificationTokenByToken = ({ token }: { token: string }) => {
   });
 };
 
+export const getPasswordResetTokenByToken = ({ token }: { token: string }) => {
+  const now = new Date();
+  return prisma.passwordResetToken.findUnique({
+    where: { token: token, expires: { gt: now } },
+  });
+};
+
 export const deleteVerificationTokenByIdentifier = ({
   identifier,
 }: {

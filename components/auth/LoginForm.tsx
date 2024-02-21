@@ -153,6 +153,9 @@ export const LoginForm = () => {
           <Link className="hover:underline" href="/auth/signup">
             Create Account
           </Link>
+          <Link className="hover:underline" href="/auth/reset">
+            Password reset
+          </Link>
         </div>
       </CardFooter>
     </Card>

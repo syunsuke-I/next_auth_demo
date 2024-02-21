@@ -46,6 +46,7 @@ export const EmailSignupForm = () => {
   const onSubmit: SubmitHandler<InputType> = async (data) => {
     setIsLoading(true);
     setErrMsg("");
+    console.log(`email = ${data.email}`);
     try {
       // 登録されたメールアドレスに検証用トークンを送信
       await sendVerificationToken({ email: data.email });

@@ -14,8 +14,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { verifyToken } from "./actions";
 import { LiaSpinnerSolid } from "react-icons/lia";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -23,25 +24,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { submitResetTokenRequest } from "./actions";
 
 const schema = z.object({
-  token: z.string().length(8, "トークンは8文字で入力してください"),
+  email: z
+    .string()
+    .email({ message: "有効なメールアドレスの形式ではありません" }),
 });
 
 type InputType = z.infer<typeof schema>;
 
-export const VerificationTokenInput = () => {
+export const ResetForm = () => {
   // ローディング状態とエラーメッセージのステート
   const [isLoading, setIsLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
+  const { toast } = useToast();
   const router = useRouter();
 
   // react-hook-formとzodを使用したバリデーション
   const form = useForm<InputType>({
     resolver: zodResolver(schema),
     defaultValues: {
-      token: "",
+      email: "",
     },
   });
 
@@ -49,15 +53,17 @@ export const VerificationTokenInput = () => {
   const onSubmit: SubmitHandler<InputType> = async (data) => {
     setIsLoading(true);
     setErrMsg("");
-
-    // 入力されたトークンは sessionStorage に保存し、
-    // ユーザーの作成画面で利用します
-    sessionStorage.setItem("verify_token", data.token);
-
     try {
-      // 入力されたトークンの検証をリクエストします
-      await verifyToken({ token: data.token });
-      router.push("/auth/reset/reset_password");
+      // 登録されたメールアドレスにリセットトークンを送信
+      await submitResetTokenRequest({ email: data.email });
+      // 登録されたメールアドレスに検証用トークンを送信
+      toast({
+        variant: "default",
+        title: "メールアドレス宛にメッセージを送信しました",
+      });
+
+      // トークンが送信されたら /auth/signup/token へ遷移する
+      router.push("/auth/reset/token");
     } catch (error) {
       if (error instanceof Error) {
         setErrMsg(error.message);
@@ -72,36 +78,38 @@ export const VerificationTokenInput = () => {
   return (
     <Card className="w-[540px] flex flex-col items-center justify-center p-8 px-12">
       <CardHeader>
-        <CardTitle className="mx-auto">Email Verification</CardTitle>
+        <CardTitle className="mx-auto">Password Reset</CardTitle>
         <CardDescription>
-          ご登録のメールアドレスに送信された
+          登録済みのメールアドレスを入力してください。
           <br />
-          トークンを以下に入力してください
+          パスワードリセット用のトークンをお送りします。
         </CardDescription>
       </CardHeader>
       <CardContent className="w-full space-y-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* メールアドレス入力フィールド */}
             <FormField
               control={form.control}
-              name="token"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>検証用トークン</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="********" {...field} />
+                    <Input placeholder="user@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* 送信ボタン */}
             <div>
               <Button disabled={isLoading} className="w-full space-x-1">
                 {isLoading && (
                   <LiaSpinnerSolid className="animate-spin text-xl" />
                 )}
-                <span>確認</span>
+                <span>リセットトークンを送信</span>
               </Button>
               {/* エラーメッセージ */}
               <p className="mt-2 text-sm text-red-500">{errMsg}</p>
