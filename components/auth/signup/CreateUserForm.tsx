@@ -31,7 +31,16 @@ import { useRouter } from "next/navigation";
 const schema = z
   .object({
     name: z.string().min(1, "このフィールドは必須です。"),
-    password: z.string().min(8, "パスワードは最低8文字必要です。"),
+    password: z
+     .string()
+     .min(8, "パスワードは最低8文字必要です。")
+     .regex(/[a-z]/, "パスワードには少なくとも1つの小文字が必要です。")
+     .regex(/[A-Z]/, "パスワードには少なくとも1つの大文字が必要です。")
+     .regex(/[0-9]/, "パスワードには少なくとも1つの数字が必要です。")
+     .regex(
+       /[^a-zA-Z0-9]/,
+       "パスワードには少なくとも1つの特殊文字が必要です。"
+     ),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

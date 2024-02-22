@@ -1,5 +1,5 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { NextAuthOptions } from "next-auth";
+import { DefaultSession, NextAuthOptions } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
@@ -7,6 +7,26 @@ import { getServerSession } from "next-auth"
 
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
+import { UserRoleType } from "@prisma/client";
+
+declare module "next-auth" {
+  interface User {
+    role: UserRoleType;
+  }
+  interface Session extends DefaultSession {
+    user: {
+      id: string;
+      role: UserRoleType;
+    } & DefaultSession["user"];
+  }
+ }
+
+ declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: UserRoleType;
+  }
+ }
 
 // NextAuthの設定
 export const authOptions: NextAuthOptions = {
@@ -73,12 +93,31 @@ export const authOptions: NextAuthOptions = {
       // urlのオリジンがbaseUrlではない=>外部サイトの場合、
       // 安全性を考慮してbaseUrlに返す
       return baseUrl;
-    },    
+    },
+     jwt: async ({ token, user }) => {
+      // tokenは現在のJWTトークンオブジェクトです。最初のサインイン時はJWTの一部だけです。
+      // user はサインイン時に取得されるユーザー情報です。最初のサインイン時以外は空オブジェクトです
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+    session: ({ session, token }) => {
+      // sessionは現在のSessionオブジェクトです。ユーザーのセッション情報として使われます
+      // tokenはjwtコールバックで生成されたtokenです。
+      if (token) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+      }
+      return session;
+    },
   },
   pages: {
-    error: "/login",
+    // signIn: "/auth/login",
+    error: "/auth/login",
   },
-};
+ };
 
 export const getAuthSession = async () => {
   return getServerSession(authOptions);
