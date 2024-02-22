@@ -29,7 +29,16 @@ import { fetchEmailByPasswordResetToken, submitNewPassword } from "./actions";
 
 const schema = z
   .object({
-    password: z.string().min(8, "パスワードは最低8文字必要です。"),
+    password: z
+    .string()
+    .min(8, "パスワードは最低8文字必要です。")
+    .regex(/[a-z]/, "パスワードには少なくとも1つの小文字が必要です。")
+    .regex(/[A-Z]/, "パスワードには少なくとも1つの大文字が必要です。")
+    .regex(/[0-9]/, "パスワードには少なくとも1つの数字が必要です。")
+    .regex(
+      /[^a-zA-Z0-9]/,
+      "パスワードには少なくとも1つの特殊文字が必要です。"
+    ),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
